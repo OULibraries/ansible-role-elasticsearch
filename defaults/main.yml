@@ -1,0 +1,4 @@
+---
+# defaults file for ansible_role_elk
+elasticsearch_url: localhost
+elasticsearch_port: 9200

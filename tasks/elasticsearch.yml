@@ -1,0 +1,58 @@
+---
+- name: Ensure Elastic Repo Installed
+  yum_repository:
+    baseurl: https://artifacts.elastic.co/packages/6.x/yum
+    name: elastic
+    description: Elastic Co Repo
+    gpgkey: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+
+- name: Install Elasticsearch from Elastic Repo
+  yum:
+    name: elasticsearch
+    state: present
+
+- name: Enable Memory Lock for Elasticsearch
+  replace:
+    path: '/etc/elasticsearch/elasticsearch.yml'
+    regexp: '#bootstrap.memory_lock: true'
+    replace: 'bootstrap.memory_lock: true'
+    backup: yes
+
+- name: Enable Network Host for Elasticsearch
+  replace:
+    path: '/etc/elasticsearch/elasticsearch.yml'
+    regexp: '#network.host: 192.168.0.1'
+    replace: 'network.host: {{ elasticsearch_url }}'
+    backup: yes
+
+- name: Enable HTTP Port for Elasticsearch
+  replace:
+    path: '/etc/elasticsearch/elasticsearch.yml'
+    regexp: '#http.port: 9200'
+    replace: 'http.port: {{ elasticsearch_port }}'
+    backup: yes
+
+- name: Configure LimitMEMLOCK for Elasticsearch
+  replace:
+    path: '/usr/lib/systemd/system/elasticsearch.service'
+    regexp: '#LimitMEMLOCK=infinity'
+    replace: 'LimitMEMLOCK=infinity'
+    backup: yes
+
+- name: Configure Max Memory Lock for Elasticsearch
+  replace:
+    path: '/etc/sysconfig/elasticsearch'
+    regexp: '#MAX_LOCKED_MEMORY=unlimted'
+    replace: 'MAX_LOCKED_MEMORY=unlimited'
+    backup: yes
+
+- name: Enable Elasticsearch
+  systemd:
+    name: elasticsearch
+    daemon_reload: yes
+    enabled: yes
+
+- name: Start Elasticsearch
+  systemd:
+    name: elasticsearch
+    state: started
